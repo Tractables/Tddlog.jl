@@ -57,7 +57,7 @@ query(a).
 @testset "Tddlog" begin
     @testset "version" begin
         @test Tddlog.version() isa VersionNumber
-        @test Tddlog.version() == pkgversion(Tddlog)
+        @test Tddlog.version() == Tddlog.TDDLOG_VERSION
     end
 
     @testset "evidence" begin

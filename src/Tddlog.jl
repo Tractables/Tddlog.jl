@@ -9,7 +9,9 @@ process by tddlog's C library. [`solve`](@ref) answers a program and returns a
 """
 module Tddlog
 
-using Artifacts: artifact_exists, artifact_meta, artifact_path
+# @artifact_str downloads a lazy artifact only where LazyArtifacts is loaded
+# in the calling module.
+using LazyArtifacts: LazyArtifacts, @artifact_str, artifact_meta
 using Libdl: Libdl
 
 export solve, Solution
@@ -19,6 +21,11 @@ export solve, Solution
 const TDDLOG_VERSION = v"0.1.1"
 
 const ARTIFACTS_TOML = joinpath(dirname(@__DIR__), "Artifacts.toml")
+
+# The artifact's name, as a constant rather than a literal: @artifact_str then
+# looks it up when it runs, not when the package is precompiled, where a
+# platform with no entry in Artifacts.toml would fail to precompile.
+const ARTIFACT = "tddlog_c"
 
 ##################################
 # Errors
@@ -84,8 +91,10 @@ struct Library
     solution_evidence_probability::Ptr{Cvoid}
 end
 
-# The library, or why it could not be loaded; set by __init__.
-const LIBRARY = Ref{Union{Library, String}}("Tddlog is not initialized")
+# The library, loaded by the first call that needs it, so that installing or
+# loading the package downloads nothing.
+const LIBRARY = Ref{Union{Nothing, Library}}(nothing)
+const LIBRARY_LOCK = ReentrantLock()
 
 function unsupported_platform()
     platform = Base.BinaryPlatforms.triplet(Base.BinaryPlatforms.HostPlatform())
@@ -93,20 +102,19 @@ function unsupported_platform()
     install; it has Linux (x86-64 and ARM64, glibc) and macOS (x86-64 and ARM64). On \
     Windows, unpack tddlog-c-v$TDDLOG_VERSION-x86_64-pc-windows-msvc.zip from \
     https://github.com/Tractables/tddlog/releases/tag/v$TDDLOG_VERSION and set \
-    ENV["TDDLOG_LIBRARY"] to the path of its tddlog_c.dll before loading Tddlog."""
+    ENV["TDDLOG_LIBRARY"] to the path of its tddlog_c.dll before the first call to Tddlog."""
 end
 
-# The library file in this platform's artifact.
+# The library file in this platform's artifact, which the first call
+# downloads. A release archive holds one directory with the library in lib/
+# (the Windows archive has it at the top of that directory); an artifact
+# overridden by an installation prefix (Overrides.toml) has it in lib/.
 function artifact_library()
-    meta = artifact_meta("tddlog_c", ARTIFACTS_TOML)
-    meta === nothing && error(unsupported_platform())
-    hash = Base.SHA1(meta["git-tree-sha1"])
-    artifact_exists(hash) ||
-        error("tddlog's C library is not installed: run `import Pkg; Pkg.instantiate()`")
-    root = artifact_path(hash)
-    name = Sys.isapple() ? "libtddlog_c.dylib" : "libtddlog_c.so"
-    for dir in readdir(root; join = true)
-        file = joinpath(dir, "lib", name)
+    artifact_meta(ARTIFACT, ARTIFACTS_TOML) === nothing && error(unsupported_platform())
+    root = @artifact_str(ARTIFACT)
+    name = Sys.iswindows() ? "tddlog_c.dll" : Sys.isapple() ? "libtddlog_c.dylib" : "libtddlog_c.so"
+    for dir in [root; filter(isdir, readdir(root; join = true))], sub in ("lib", "")
+        file = joinpath(dir, sub, name)
         isfile(file) && return file
     end
     error("tddlog's C library $name is not in $root")
@@ -124,19 +132,14 @@ function load_library()
     lib
 end
 
-function __init__()
-    LIBRARY[] = try
-        load_library()
-    catch e
-        e isa ErrorException ? e.msg : sprint(showerror, e)
-    end
-    nothing
-end
-
+# The library, loaded on the first call. A failure is not kept, so a call
+# after a failed download tries again.
 function library()
-    lib = LIBRARY[]
-    lib isa Library || error(lib)
-    lib
+    @lock LIBRARY_LOCK begin
+        lib = LIBRARY[]
+        lib === nothing && (lib = LIBRARY[] = load_library())
+        lib
+    end
 end
 
 """

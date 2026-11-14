@@ -3,28 +3,44 @@ name: CI
 on:
   push:
     branches: [main]
+    tags: ['*']
   pull_request:
+  workflow_dispatch:
+
+concurrency:
+  # A new push to a pull request cancels its previous run; runs on main and
+  # on tags all finish.
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ startsWith(github.ref, 'refs/pull/') }}
 
 jobs:
   test:
     name: Julia ${{ matrix.julia }}, ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+    # tddlog's release has no archive for Windows that Pkg can unpack, so the
+    # tests there fail, with the error that says so, without failing the run.
+    continue-on-error: ${{ matrix.os == 'windows-latest' }}
     strategy:
       fail-fast: false
       matrix:
-        julia: ['1.10', '1.11']
-        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, macos-13]
+        # The oldest Julia the package supports, and the latest release.
+        julia: ['1.10', '1']
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, macos-15-intel, windows-latest]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: julia-actions/setup-julia@v2
         with:
           version: ${{ matrix.julia }}
+          arch: ${{ runner.arch }}
+      - uses: julia-actions/cache@v2
       # The tddlog command of the release the package wraps, whose answers
       # the tests compare with the library's.
       - name: Install the tddlog command
+        if: runner.os != 'Windows'
         shell: bash
         run: |
-          version=$(sed -n 's/^version = "\(.*\)"$/\1/p' Project.toml)
+          set -eu
+          version=$(sed -n 's/^const TDDLOG_VERSION = v"\(.*\)"$/\1/p' src/Tddlog.jl)
           case "$(uname -s)-$(uname -m)" in
             Linux-x86_64) target=x86_64-unknown-linux-gnu ;;
             Linux-aarch64) target=aarch64-unknown-linux-gnu ;;
@@ -39,4 +55,5 @@ jobs:
           shasum -a 256 -c "$name.tar.gz.sha256"
           tar xzf "$name.tar.gz"
           echo "TDDLOG_COMMAND=$RUNNER_TEMP/$name/tddlog" >> "$GITHUB_ENV"
+      - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1

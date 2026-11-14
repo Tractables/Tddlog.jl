@@ -97,8 +97,7 @@ const LIBRARY = Ref{Union{Nothing, Library}}(nothing)
 const LIBRARY_LOCK = ReentrantLock()
 
 function unsupported_platform()
-    platform = Base.BinaryPlatforms.triplet(Base.BinaryPlatforms.HostPlatform())
-    """tddlog's release $TDDLOG_VERSION has no C library for $platform that Julia can \
+    """tddlog's release $TDDLOG_VERSION has no C library for $(Sys.MACHINE) that Julia can \
     install; it has Linux (x86-64 and ARM64, glibc) and macOS (x86-64 and ARM64). On \
     Windows, unpack tddlog-c-v$TDDLOG_VERSION-x86_64-pc-windows-msvc.zip from \
     https://github.com/Tractables/tddlog/releases/tag/v$TDDLOG_VERSION and set \

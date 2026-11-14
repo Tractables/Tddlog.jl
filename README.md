@@ -10,20 +10,42 @@ decision diagrams. This package calls tddlog's C library in process.
 
 ```julia
 import Pkg
-Pkg.add(url = "https://github.com/Tractables/Tddlog.jl")
+Pkg.add("Tddlog")
 ```
 
-`Pkg.add` downloads the C library of tddlog's release 0.1.1 for Linux
-(x86-64 and ARM64, glibc) or macOS (x86-64 and ARM64) as a Julia artifact,
-SHA-256 checked. No Rust toolchain and no `tddlog` command are needed. The
-package's version is the version of the tddlog release it wraps.
+The package calls the C library of tddlog's release 0.1.1, which it gets as
+a lazy Julia artifact: the first call that needs the library downloads it
+(about 14 MB) from the
+[release](https://github.com/Tractables/tddlog/releases/tag/v0.1.1) and
+checks its SHA-256, so installing the package, or a package that depends on
+it, downloads nothing. No Rust toolchain and no `tddlog` command are needed.
+The package's version is the version of the tddlog release it wraps.
+
+## Platforms
+
+| platform | library |
+| --- | --- |
+| Linux x86-64 and ARM64 (glibc) | downloaded on first use |
+| macOS x86-64 and ARM64 | downloaded on first use |
+| Windows x86-64 | by hand, see below |
 
 Windows: the release's Windows archive is a `.zip`, which Pkg cannot unpack.
-Download `tddlog-c-v0.1.1-x86_64-pc-windows-msvc.zip` from the
-[release](https://github.com/Tractables/tddlog/releases/tag/v0.1.1), unpack
-it, and set `ENV["TDDLOG_LIBRARY"]` to the path of its `tddlog_c.dll` before
-`using Tddlog`. The same variable loads any other build of the library of the
-same version.
+Download `tddlog-c-v0.1.1-x86_64-pc-windows-msvc.zip` from the release,
+unpack it, and set `ENV["TDDLOG_LIBRARY"]` to the path of its `tddlog_c.dll`
+before the first call. On a platform without a library, `using Tddlog`
+works, and the first call raises an error that says so.
+
+## Another build of the library
+
+`ENV["TDDLOG_LIBRARY"]`, set to the path of a library file before the first
+call, loads that file instead of the artifact: a local build of tddlog's C
+library (`bindings/c` in tddlog's repository), or the Windows DLL. The
+library must be of the same tddlog version, because its interface changes
+between releases; another version raises an error. Julia's
+[`Overrides.toml`](https://pkgdocs.julialang.org/v1/artifacts/#Overriding-artifact-locations)
+works as well: the artifact is `tddlog_c` of the package
+`3f2df548-816e-41fe-8d17-dd233152ce24`, and an installation prefix with the
+library in `lib/` can take its place.
 
 ## Use
 

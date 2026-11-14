@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    name: Julia ${{ matrix.julia }}, ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        julia: ['1.10', '1.11']
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, macos-13]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: julia-actions/setup-julia@v2
+        with:
+          version: ${{ matrix.julia }}
+      # The tddlog command of the release the package wraps, whose answers
+      # the tests compare with the library's.
+      - name: Install the tddlog command
+        shell: bash
+        run: |
+          version=$(sed -n 's/^version = "\(.*\)"$/\1/p' Project.toml)
+          case "$(uname -s)-$(uname -m)" in
+            Linux-x86_64) target=x86_64-unknown-linux-gnu ;;
+            Linux-aarch64) target=aarch64-unknown-linux-gnu ;;
+            Darwin-arm64) target=aarch64-apple-darwin ;;
+            Darwin-x86_64) target=x86_64-apple-darwin ;;
+          esac
+          name=tddlog-v$version-$target
+          cd "$RUNNER_TEMP"
+          base=https://github.com/Tractables/tddlog/releases/download/v$version
+          curl -sSfLO "$base/$name.tar.gz"
+          curl -sSfLO "$base/$name.tar.gz.sha256"
+          shasum -a 256 -c "$name.tar.gz.sha256"
+          tar xzf "$name.tar.gz"
+          echo "TDDLOG_COMMAND=$RUNNER_TEMP/$name/tddlog" >> "$GITHUB_ENV"
+      - uses: julia-actions/julia-runtest@v1

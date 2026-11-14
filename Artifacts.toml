@@ -1,0 +1,41 @@
+# tddlog's C library, from the C archives of tddlog's GitHub release v0.1.1.
+# The Windows archive is a .zip, which Pkg cannot unpack, so Windows has no
+# entry here.
+
+[[tddlog_c]]
+arch = "x86_64"
+git-tree-sha1 = "ce481208361bb7051324186748f5c34a933296a5"
+libc = "glibc"
+os = "linux"
+
+    [[tddlog_c.download]]
+    sha256 = "fbdfa131906d555711bcc5760d7246555c6830c4274ffc821a8ccbc7645d3344"
+    url = "https://github.com/Tractables/tddlog/releases/download/v0.1.1/tddlog-c-v0.1.1-x86_64-unknown-linux-gnu.tar.gz"
+
+[[tddlog_c]]
+arch = "aarch64"
+git-tree-sha1 = "b27134a525b4b0078f5bcc067cafb7c02bf8d763"
+libc = "glibc"
+os = "linux"
+
+    [[tddlog_c.download]]
+    sha256 = "1d38900b7f25dbce0268df9571626cff7d64263b92e6901c7bd2768f69773c48"
+    url = "https://github.com/Tractables/tddlog/releases/download/v0.1.1/tddlog-c-v0.1.1-aarch64-unknown-linux-gnu.tar.gz"
+
+[[tddlog_c]]
+arch = "x86_64"
+git-tree-sha1 = "017b75067fc59d50945e788f43a3d684a65e9fe9"
+os = "macos"
+
+    [[tddlog_c.download]]
+    sha256 = "9664fe92aba8b8ba7e92687912f3be663f8a658531928efb47667c99c5092dda"
+    url = "https://github.com/Tractables/tddlog/releases/download/v0.1.1/tddlog-c-v0.1.1-x86_64-apple-darwin.tar.gz"
+
+[[tddlog_c]]
+arch = "aarch64"
+git-tree-sha1 = "39b69c00b91fbf0afff2fc0697ff4bd00678874a"
+os = "macos"
+
+    [[tddlog_c.download]]
+    sha256 = "4e0252357c37d197be0faf61d5e3ea9bca590d4ac789137c6d70cc8779bdebc0"
+    url = "https://github.com/Tractables/tddlog/releases/download/v0.1.1/tddlog-c-v0.1.1-aarch64-apple-darwin.tar.gz"

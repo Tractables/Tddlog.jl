@@ -98,10 +98,10 @@ const LIBRARY_LOCK = ReentrantLock()
 
 function unsupported_platform()
     """tddlog's release $TDDLOG_VERSION has no C library for $(Sys.MACHINE) that Julia can \
-    install; it has Linux (x86-64 and ARM64, glibc) and macOS (x86-64 and ARM64). On \
-    Windows, unpack tddlog-c-v$TDDLOG_VERSION-x86_64-pc-windows-msvc.zip from \
-    https://github.com/Tractables/tddlog/releases/tag/v$TDDLOG_VERSION and set \
-    ENV["TDDLOG_LIBRARY"] to the path of its tddlog_c.dll before the first call to Tddlog."""
+    install; it has Linux (x86-64 and ARM64, glibc), macOS (x86-64 and ARM64) and \
+    Windows (x86-64). A build of tddlog's C library for this platform (bindings/c in \
+    https://github.com/Tractables/tddlog, version $TDDLOG_VERSION) can be used: set \
+    ENV["TDDLOG_LIBRARY"] to the path of its library file before the first call to Tddlog."""
 end
 
 # The library file in this platform's artifact, which the first call

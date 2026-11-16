@@ -1,7 +1,8 @@
 # tddlog's C library, from the C archives of tddlog's GitHub release v0.1.1.
 # Lazy: Pkg installs the package without it, and the first call that needs
-# the library downloads it. The Windows archive is a .zip, which Pkg cannot
-# unpack, so Windows has no entry here.
+# the library downloads it. For Windows the release has the MSVC build both
+# as a .zip and as a .tar.gz with the same files; Pkg unpacks only the
+# .tar.gz.
 
 [[tddlog_c]]
 arch = "x86_64"
@@ -44,3 +45,13 @@ os = "macos"
     [[tddlog_c.download]]
     sha256 = "4e0252357c37d197be0faf61d5e3ea9bca590d4ac789137c6d70cc8779bdebc0"
     url = "https://github.com/Tractables/tddlog/releases/download/v0.1.1/tddlog-c-v0.1.1-aarch64-apple-darwin.tar.gz"
+
+[[tddlog_c]]
+arch = "x86_64"
+git-tree-sha1 = "0561ad0d8f08adc6f8133be991082c21063cc14c"
+lazy = true
+os = "windows"
+
+    [[tddlog_c.download]]
+    sha256 = "2e004292e194317b6f26c0d4dd27616c6976d1bb37203504e6962396ae787336"
+    url = "https://github.com/Tractables/tddlog/releases/download/v0.1.1/tddlog-c-v0.1.1-x86_64-pc-windows-msvc.tar.gz"

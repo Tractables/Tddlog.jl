@@ -27,19 +27,19 @@ The package's version is the version of the tddlog release it wraps.
 | --- | --- |
 | Linux x86-64 and ARM64 (glibc) | downloaded on first use |
 | macOS x86-64 and ARM64 | downloaded on first use |
-| Windows x86-64 | by hand, see below |
+| Windows x86-64 | downloaded on first use |
 
-Windows: the release's Windows archive is a `.zip`, which Pkg cannot unpack.
-Download `tddlog-c-v0.1.1-x86_64-pc-windows-msvc.zip` from the release,
-unpack it, and set `ENV["TDDLOG_LIBRARY"]` to the path of its `tddlog_c.dll`
-before the first call. On a platform without a library, `using Tddlog`
-works, and the first call raises an error that says so.
+The Windows library is an MSVC build and needs the Microsoft Visual C++
+Redistributable for Visual Studio 2015-2022 (x64), which Julia does not
+ship; without it, loading the library fails because `VCRUNTIME140.dll` or
+`MSVCP140.dll` is not found. On a platform without a library, `using
+Tddlog` works, and the first call raises an error that says so.
 
 ## Another build of the library
 
 `ENV["TDDLOG_LIBRARY"]`, set to the path of a library file before the first
 call, loads that file instead of the artifact: a local build of tddlog's C
-library (`bindings/c` in tddlog's repository), or the Windows DLL. The
+library (`bindings/c` in tddlog's repository), for instance. The
 library must be of the same tddlog version, because its interface changes
 between releases; another version raises an error. Julia's
 [`Overrides.toml`](https://pkgdocs.julialang.org/v1/artifacts/#Overriding-artifact-locations)
